@@ -23,7 +23,6 @@ func CleanStruct(filePath string) {
 	astTree, err := parser.ParseFile(fset, "", fileBody, parser.AllErrors|parser.ParseComments)
 	plog("can't parse file ast", err)
 
-	// Обход AST и сортировка полей структур
 	ast.Inspect(astTree, func(n ast.Node) bool {
 		ts, ok := n.(*ast.TypeSpec)
 		if !ok {
@@ -35,7 +34,6 @@ func CleanStruct(filePath string) {
 			return true
 		}
 
-		// Сортируем поля по размеру типа (с учётом указателей)
 		sizeOfType := func(expr ast.Expr) uintptr {
 			typeName := exprToString(fset, expr)
 			cleanName := strings.TrimPrefix(typeName, "*")
@@ -50,9 +48,9 @@ func CleanStruct(filePath string) {
 			return sizeOfType(st.Fields.List[i].Type) > sizeOfType(st.Fields.List[j].Type)
 		})
 
-		// Перестроим поля (копируем, чтобы убрать лишние пробелы)
 		newFields := make([]*ast.Field, len(st.Fields.List))
 		for i, f := range st.Fields.List {
+
 			newNames := make([]*ast.Ident, len(f.Names))
 			for j, name := range f.Names {
 				newNames[j] = ast.NewIdent(name.Name)
@@ -71,7 +69,6 @@ func CleanStruct(filePath string) {
 		return false
 	})
 
-	// Записываем обновлённый AST обратно в файл
 	var buf bytes.Buffer
 	plog("error formatting code", format.Node(&buf, fset, astTree))
 	plog("error remove old file", os.Remove(filePath))
@@ -84,7 +81,6 @@ func plog(msg string, err error) {
 	}
 }
 
-// exprToString преобразует ast.Expr в строку с использованием одного и того же fset
 func exprToString(fset *token.FileSet, expr ast.Expr) string {
 	if expr == nil {
 		return ""

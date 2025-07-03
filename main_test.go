@@ -9,60 +9,32 @@ import (
 )
 
 func TestStructSizes(t *testing.T) {
-	t.Log("=== Sizes BEFORE cleaning ===")
-	beforeSizes := getSizes()
-	printSizes(t, beforeSizes)
+	t.Log("=== Sizes  ===")
+	printSizes(t)
+
+	total := getTotalSize()
+	t.Logf("Total size: %d bytes", total)
 
 	art.CleanStruct("domains/domains.go")
 
-	t.Log("=== Sizes AFTER cleaning ===")
-	afterSizes := getSizes()
-	printSizes(t, afterSizes)
-
-	t.Log("=== Memory saved per struct ===")
-	printSavedMemory(t, beforeSizes, afterSizes)
 }
 
-func BenchmarkCreateBefore(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_ = make([]domains.MixedStruct, 1_000_000)
+func printSizes(t testing.TB) {
+	t.Logf("TaggedStruct size: %d bytes", unsafe.Sizeof(domains.TaggedStruct{}))
+	t.Logf("MixedStruct size: %d bytes", unsafe.Sizeof(domains.MixedStruct{}))
+	t.Logf("PointerStruct size: %d bytes", unsafe.Sizeof(domains.PointerStruct{}))
+}
+
+func getTotalSize() int {
+	sizes := []uintptr{
+		unsafe.Sizeof(domains.TaggedStruct{}),
+		unsafe.Sizeof(domains.MixedStruct{}),
+		unsafe.Sizeof(domains.PointerStruct{}),
 	}
-}
 
-func BenchmarkCreateAfter(b *testing.B) {
-	b.Skip("Replace with optimized struct when ready")
-}
-
-func getSizes() map[string]uintptr {
-	return map[string]uintptr{
-		"SimpleStruct":    unsafe.Sizeof(domains.SimpleStruct{}),
-		"TaggedStruct":    unsafe.Sizeof(domains.TaggedStruct{}),
-		"EmbeddedStruct":  unsafe.Sizeof(domains.EmbeddedStruct{}),
-		"NumbersStruct":   unsafe.Sizeof(domains.NumbersStruct{}),
-		"MixedStruct":     unsafe.Sizeof(domains.MixedStruct{}),
-		"EmptyStruct":     unsafe.Sizeof(domains.EmptyStruct{}),
-		"CommentedStruct": unsafe.Sizeof(domains.CommentedStruct{}),
-		"PointerStruct":   unsafe.Sizeof(domains.PointerStruct{}),
+	var total int
+	for _, size := range sizes {
+		total += int(size)
 	}
-}
-
-func printSizes(t testing.TB, sizes map[string]uintptr) {
-	for name, size := range sizes {
-		t.Logf("%-15s size: %d bytes", name, size)
-	}
-}
-
-func printSavedMemory(t testing.TB, before, after map[string]uintptr) {
-	var totalBefore, totalAfter uintptr
-	for name := range before {
-		b := before[name]
-		a := after[name]
-		saved := int64(b) - int64(a)
-		t.Logf("%-15s saved: %d bytes", name, saved)
-		totalBefore += b
-		totalAfter += a
-	}
-	t.Logf("Total size BEFORE: %d bytes", totalBefore)
-	t.Logf("Total size AFTER : %d bytes", totalAfter)
-	t.Logf("TOTAL SAVED       : %d bytes", int64(totalBefore)-int64(totalAfter))
+	return total
 }

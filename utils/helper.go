@@ -6,8 +6,6 @@ import (
 	"reflect"
 )
 
-// BasicTypeFromName возвращает reflect.Type по имени базового типа.
-// Если тип не распознан — возвращает nil.
 func BasicTypeFromName(name string) reflect.Type {
 	switch name {
 	case "int":
@@ -43,8 +41,6 @@ func BasicTypeFromName(name string) reflect.Type {
 	}
 }
 
-// SafeSize возвращает размер типа в байтах, если тип не nil,
-// иначе возвращает 0, чтобы избежать паники.
 func SafeSize(t reflect.Type) uintptr {
 	if t == nil {
 		return 0
@@ -52,7 +48,6 @@ func SafeSize(t reflect.Type) uintptr {
 	return t.Size()
 }
 
-// ExprToString преобразует ast.Expr в строковое представление типа.
 func ExprToString(expr ast.Expr) string {
 	switch e := expr.(type) {
 	case *ast.Ident:
