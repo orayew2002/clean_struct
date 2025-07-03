@@ -35,3 +35,4 @@
 4. Снова запустите тест и сравните размеры — они должны уменьшиться.
 
 ---
+![alt text](https://github.com/orayew2002/clean_struct/blob/main/assets/result.png)
